@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reportes</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f1115">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f7fc;--card:#fff;--tx:#1b1f24;--mu:#5b6677;--ac:#c2410c;--acx:#fff;--bd:#d9e0ea;--dg:#b42318;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#1a1d23;--tx:#e6e8ec;--mu:#9aa3af;--ac:#fb923c;--acx:#1c0f05;--bd:#2a2f38;--dg:#f87171;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1115;--card:#1a1d23;--tx:#e6e8ec;--mu:#9aa3af;--ac:#fb923c;--acx:#1c0f05;--bd:#2a2f38;--dg:#f87171;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
+main{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 14px}h2{font-size:17px;margin:18px 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+.mu{color:var(--mu);font-size:14px}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:14px;padding:14px 18px;min-height:50px;cursor:pointer}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+button.d{color:var(--dg)}button.s{padding:10px 14px;min-height:42px;font-size:14px}
+input,select,textarea{font:inherit;width:100%;padding:13px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}
+textarea{min-height:100px}label{display:block;font-size:14px;color:var(--mu);margin:12px 0 4px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;border-radius:0;padding:18px 4px;background:none;color:var(--mu)}
+nav button.on{color:var(--ac);font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--bg);width:100%;max-width:720px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:16px}
+.chip{display:inline-block;border:1px solid var(--bd);border-radius:99px;padding:9px 14px;margin:0 8px 8px 0;font-size:14px;background:var(--card);cursor:pointer}
+.chip.on{border-color:var(--ac);color:var(--ac);font-weight:700}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumbs img{height:90px;border-radius:10px;display:block;cursor:zoom-in}
+.thumbs .x{position:absolute;top:-6px;right:-6px;background:var(--dg);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;line-height:26px;cursor:pointer}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--bd)}
+.ver{position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);right:8px;font-size:11px;color:var(--mu);opacity:.7;pointer-events:none;z-index:5}
+.upr .card,.upr input:not([type=file]),.upr textarea{text-transform:uppercase}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:40}
+#lb img{max-width:96vw;max-height:92vh;border-radius:10px}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:50;display:none;max-width:90%}
+</style></head><body>
+<div class="ver" id="ver"></div><main id="app"></main><nav id="nav"></nav><div id="lb"><img id="lbi" alt=""></div><div id="toast"></div>
+<script>
+const VERSION="1.0.0";
+const LOG=[["1.0.0","Primera versión: reportes con fotos, historial con filtro y búsqueda, respaldos y actualización"]];
+const GUIDE=[
+["Nuevo reporte","Escoges el tipo, pones el equipo y la descripción, y agregas fotos: «📷 Tomar foto» abre la cámara directo y «🖼 Galería» te deja escoger varias. Puedes poner hasta 5 fotos."],
+["Compartir","«Compartir por WhatsApp» abre el menú del teléfono con las fotos y el texto ya listos. «Copiar texto» es el respaldo si las fotos no se adjuntan. Compartir no guarda el reporte: para dejarlo en el historial toca «Guardar en el historial»."],
+["Historial","Aquí quedan los reportes guardados. Filtras por tipo (con el conteo de cada uno) y buscas por texto o por equipo. Tocas una foto para verla grande, y con «Reenviar» lo mandas otra vez."],
+["Tipos de reporte","En Ajustes agregas o quitas los tipos. Quitar un tipo no borra los reportes que ya lo usaron."],
+["Fotos y espacio","Las fotos se reducen solas para que pesen poco. En Ajustes → Fotos ves cuántas hay y cuánto ocupan, y puedes borrar las de reportes viejos: el texto del reporte se queda y solo se quita la foto."],
+["Respaldos","«Respaldo sin fotos» es liviano y sirve para la rutina; «Respaldo completo» trae las fotos y pesa más. La app te recuerda hacer el respaldo los viernes (o si pasaron 7 días)."],
+["Cargar un respaldo","En Ajustes → «Cargar respaldo» escoges un archivo y se agregan los reportes y tipos que falten, sin borrar nada. Sirve para el respaldo de esta app, para pasar los reportes de otro teléfono y para traer los reportes de un respaldo de la app de Inventario."],
+["Dónde se guardan los datos","En el navegador de este teléfono, en un espacio grande propio de esta app. No se envían a internet. Si borras los datos del navegador o de la app, se pierden, por eso conviene el respaldo."],
+["Apariencia","En Ajustes escoges tema Oscuro, Claro o Automático, y si quieres los reportes en mayúsculas."],
+["Actualizar la app","Con internet, la app siempre trae la versión más nueva. Si ves un número viejo en la esquina, ve a Ajustes → «🔄 Buscar actualización»: recarga la app sin tocar tus datos."]
+];
+const DEFT=["Error de sistema de facturación","Error de caja","Falla de equipo","Otro"];
+let S={types:DEFT.slice(),theme:"dark",upRep:false,lastBackup:"",snooze:""},R=[],PH=[];
+let V={tab:"new",filter:"",q:"",modal:null,draft:{type:"",photos:[],desc:"",equipo:""}};
+const $=s=>document.querySelector(s);
+const h=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const nm=x=>String(x==null?"":x).trim().toLowerCase();
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display="none",2800)}
+
+/* ---------- almacenamiento: IndexedDB (espacio grande, propio de esta app) ---------- */
+const opendb=()=>new Promise((ok,no)=>{const r=indexedDB.open("reportes_app",1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore("reps",{keyPath:"id"});d.createObjectStore("kv",{keyPath:"k"})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+async function run(store,mode,f){const d=await opendb();return new Promise((ok,no)=>{const t=d.transaction(store,mode),q=f(t.objectStore(store));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error||new Error("abortado"))})}
+async function idbAll(){return run("reps","readonly",s=>s.getAll())}
+async function idbPutMany(a){return run("reps","readwrite",s=>{a.forEach(x=>s.put(x))})}
+async function idbDel(id){return run("reps","readwrite",s=>s.delete(id))}
+async function kvGet(k){const r=await run("kv","readonly",s=>s.get(k));return r?r.v:undefined}
+async function kvSet(k,v){return run("kv","readwrite",s=>s.put({k,v}))}
+async function saveCfg(){try{await kvSet("cfg",S);return true}catch(e){toast("No se pudo guardar la configuración");return false}}
+async function putReps(a){try{await idbPutMany(a);return true}catch(e){toast("No hay espacio para guardar. Borra fotos viejas en Ajustes");return false}}
+
+/* ---------- utilidades ---------- */
+const ph=r=>r.photos||(r.photo?[r.photo]:[]);
+const ymd=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function repTime(r){if(r.ts)return r.ts;const m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(r.date||"");if(!m)return 0;const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,+m[2]-1,+m[1]).getTime()}
+const normRep=r=>({id:r.id,type:r.type||"",date:r.date||"",ts:repTime(r)||Date.now(),equipo:r.equipo||"",desc:r.desc||"",photos:ph(r).slice(),fotosBorradas:r.fotosBorradas||0});
+const sorted=()=>R.slice().sort((a,b)=>repTime(b)-repTime(a));
+function photoStats(){let n=0,b=0;R.forEach(r=>ph(r).forEach(u=>{n++;b+=u.length*.75}));return{n,mb:(b/1048576).toFixed(1)}}
+function resize(file){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",.7))};im.onerror=()=>no(new Error("imagen"));im.src=u})}
+const repText=r=>"*"+r.type+"*\n📅 "+r.date+(r.equipo?"\n🖥 Equipo: "+r.equipo:"")+"\n\n"+r.desc;
+function curRep(){const d=V.draft,U=x=>S.upRep?x.toUpperCase():x;return{id:uid(),type:d.type||S.types[0]||"Reporte",date:new Date().toLocaleString("es-VE",{dateStyle:"short",timeStyle:"short"}),ts:Date.now(),equipo:U(d.equipo.trim()),desc:U(d.desc.trim()),photos:d.photos.slice(),fotosBorradas:0}}
+async function copyText(t,msg){try{await navigator.clipboard.writeText(t);toast(msg||"Copiado")}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast(msg||"Copiado")}catch(x){toast("No pude copiar")}a.remove()}}
+async function shareRep(r){
+  const text=repText(r),files=[];
+  for(const [i,u] of ph(r).entries()){const b=await (await fetch(u)).blob();files.push(new File([b],"reporte"+(i+1)+".jpg",{type:"image/jpeg"}))}
+  try{
+    if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text});return}
+    if(navigator.share){await navigator.share({text});if(files.length)toast("Se compartió el texto; adjunta las fotos a mano");return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  copyText(text,"No se pudo abrir compartir; copié el texto");
+}
+function dl(name,data){const u=URL.createObjectURL(data),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Descargando "+name)}
+async function doBackup(withPhotos){
+  const reps=withPhotos?R:R.map(r=>({...r,photos:[],fotosBorradas:(r.fotosBorradas||0)+ph(r).length}));
+  dl("respaldo-reportes-"+(withPhotos?"completo-":"")+ymd()+".json",new Blob([JSON.stringify({app:"invrep-rep",ver:VERSION,saved:new Date().toISOString(),rtypes:S.types,reps})],{type:"application/json"}));
+  S.lastBackup=ymd();await saveCfg();
+}
+async function loadBackup(txt){
+  let o;try{o=JSON.parse(txt);if(!o||(o.app!=="invrep-rep"&&o.app!=="invrep")||!Array.isArray(o.reps))throw 0}catch(e){toast("Ese archivo no es un respaldo válido");return}
+  const add=[];let fotos=0;
+  o.reps.forEach(r=>{if(!r||!r.id||R.some(x=>x.id===r.id)||add.some(x=>x.id===r.id))return;const x=normRep(r);add.push(x);fotos+=x.photos.length});
+  let nt=0;(o.rtypes||[]).forEach(t=>{if(t&&!S.types.includes(t)){S.types.push(t);nt++}});
+  if(add.length){if(!await putReps(add))return;R=R.concat(add)}
+  await saveCfg();render();
+  toast(add.length?"Se agregaron "+add.length+" reporte(s)"+(fotos?" con "+fotos+" foto(s)":"")+(nt?" y "+nt+" tipo(s)":""):(nt?"Se agregaron "+nt+" tipo(s). Los reportes ya estaban":"No había nada nuevo que agregar"));
+}
+async function forceUpdate(){
+  toast("Actualizando…");
+  try{if(navigator.serviceWorker){for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister()}if(window.caches){for(const k of await caches.keys())await caches.delete(k)}}catch(e){}
+  location.reload();
+}
+function applyTheme(){const r=document.documentElement;if(S.theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",S.theme||"dark")}
+const ask=(msg,fn)=>{V.modal={k:"cf",msg,fn}};
+function due(){
+  if(!R.length)return false;const t=ymd();if(S.snooze===t)return false;if(!S.lastBackup)return true;
+  const days=(new Date(t+"T00:00:00")-new Date(S.lastBackup+"T00:00:00"))/864e5;
+  return days>=7||(new Date().getDay()===5&&S.lastBackup!==t);
+}
+
+/* ---------- vistas ---------- */
+const thumbs=(a,rm)=>a.length?`<div class="thumbs">${a.map((u,i)=>{PH.push(u);return `<span style="position:relative"><img src="${u}" data-a="lb" data-i="${PH.length-1}" alt="foto">${rm?`<span class="x" data-a="rmph" data-i="${i}">✕</span>`:""}</span>`}).join("")}</div>`:"";
+function banner(){return due()?`<div class="card" style="border-color:var(--ac)"><b>💾 ¿Hacemos el respaldo semanal?</b><div class="mu" style="margin:4px 0 10px">${S.lastBackup?"Último respaldo: "+S.lastBackup:"Todavía no has hecho ningún respaldo."}</div><div class="row"><button class="p" data-a="bkp">Respaldo sin fotos</button><button data-a="snooze">Más tarde</button></div></div>`:""}
+function vNew(){
+  const d=V.draft,eq=[...new Set(R.map(r=>r.equipo).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+  return `<h1>Nuevo reporte</h1><div class="card">
+  <label>Tipo de reporte</label><select data-d="type">${S.types.map(t=>`<option ${d.type===t?"selected":""}>${h(t)}</option>`).join("")}</select>
+  <label>Equipo (opcional)</label><input data-d="equipo" list="dl_eq" autocomplete="off" value="${h(d.equipo)}" placeholder="Ej: Caja 2, PC delivery 1"><datalist id="dl_eq">${eq.map(x=>`<option value="${h(x)}">`).join("")}</datalist>
+  <label>Fotos del error (hasta 5)</label><div class="row"><button class="sp" data-a="cam">📷 Tomar foto</button><button class="sp" data-a="gal">🖼 Galería</button></div>
+  <input id="fcam" type="file" accept="image/*" capture="environment" data-a="photo" style="display:none"><input id="fgal" type="file" accept="image/*" multiple data-a="photo" style="display:none">${thumbs(d.photos,true)}
+  <label>Descripción</label><textarea data-d="desc" placeholder="¿Qué está pasando?">${h(d.desc)}</textarea>
+  <div class="row" style="margin-top:14px"><button class="p sp" data-a="share">Compartir por WhatsApp</button><button data-a="copy">Copiar texto</button></div>
+  <div class="row" style="margin-top:8px"><button class="s" data-a="save">Guardar en el historial</button><button class="s d" data-a="clr">Limpiar</button></div></div>`;
+}
+const repCard=r=>`<div class="card"><b>${h(r.type)}</b><div class="mu">${h(r.date)}${r.equipo?" · "+h(r.equipo):""}</div><div style="margin-top:6px;white-space:pre-wrap">${h(r.desc)}</div>${thumbs(ph(r),false)}${r.fotosBorradas&&!ph(r).length?`<div class="mu" style="margin-top:6px">📷 ${r.fotosBorradas} foto(s) eliminada(s)</div>`:""}<div class="row" style="margin-top:10px"><button class="s" data-a="resend" data-id="${r.id}">Reenviar</button><button class="s d" data-a="del" data-id="${r.id}">Borrar</button></div></div>`;
+function histList(){
+  const q=nm(V.q),L=sorted().filter(r=>(!V.filter||r.type===V.filter)&&(!q||nm(r.desc).includes(q)||nm(r.equipo).includes(q)||nm(r.type).includes(q)));
+  PH=[];return (L.length?L.map(repCard).join(""):`<div class="card mu">${R.length?"No hay reportes con ese filtro.":"Aún no hay reportes guardados."}</div>`);
+}
+function vHist(){
+  const ts=[...new Set([...S.types,...R.map(r=>r.type)])];
+  return `<h1>Historial</h1><select data-a="filt"><option value="">Todos los tipos (${R.length})</option>${ts.map(t=>`<option value="${h(t)}" ${V.filter===t?"selected":""}>${h(t)} (${R.filter(r=>r.type===t).length})</option>`).join("")}</select><input id="q" placeholder="Buscar por texto o equipo" value="${h(V.q)}" style="margin:10px 0 12px"><div id="hl">${histList()}</div>`;
+}
+function vCfg(){
+  const st=photoStats(),on=(k,v)=>S[k]===v?"on":"";
+  return `<h1>Ajustes</h1><button class="p" data-a="guide" style="width:100%;margin-bottom:12px">📖 Cómo funciona (guía de uso)</button>
+  <div class="card"><b>Tipos de reporte</b><div class="mu" style="margin:4px 0 8px">Toca uno para quitarlo. Los reportes ya hechos no se borran.</div>${S.types.map((t,i)=>`<span class="chip" data-a="deltype" data-i="${i}">${h(t)} ✕</span>`).join("")}<div class="row"><input class="sp" id="nt" placeholder="Nuevo tipo de reporte"><button data-a="addtype">Agregar</button></div></div>
+  <div class="card"><b>Fotos</b><div class="mu" style="margin:4px 0 10px">${st.n} fotos guardadas · unos ${st.mb} MB.</div><label>Borrar las fotos de reportes con más de…</label><select id="pdays"><option value="7">7 días</option><option value="15">15 días</option><option value="30" selected>30 días</option><option value="60">60 días</option><option value="90">90 días</option></select><div class="row" style="margin-top:10px"><button data-a="delph">Borrar fotos viejas</button><button class="d" data-a="delphall">Borrar todas</button></div></div>
+  <div class="card"><b>Respaldo</b><div class="mu" style="margin:4px 0 10px">Último respaldo: ${S.lastBackup||"nunca"}. La app te lo recuerda los viernes. Sin fotos es liviano; el completo incluye las fotos.</div><div class="row"><button class="p" data-a="expnp">⬇ Respaldo sin fotos</button><button data-a="expall">⬇ Respaldo completo</button></div></div>
+  <div class="card"><b>Cargar respaldo</b><div class="mu" style="margin:4px 0 8px">Agrega los reportes y tipos que falten, sin borrar nada. Sirve para respaldos de esta app y para los reportes de un respaldo de la app de Inventario.</div><input type="file" data-a="loadfile"></div>
+  <div class="card"><b>Apariencia</b><div style="margin-top:8px">${[["dark","Oscuro"],["light","Claro"],["auto","Automático"]].map(([k,l])=>`<span class="chip ${on("theme",k)}" data-a="theme" data-k="${k}">${l}</span>`).join("")}</div><span class="chip ${S.upRep?"on":""}" data-a="tglup">Mayúsculas en los reportes: ${S.upRep?"Sí":"No"}</span></div>
+  <div class="card"><b>Versión ${VERSION}</b><div class="row" style="margin:8px 0"><button class="s" data-a="upd">🔄 Buscar actualización</button><span class="mu sp">Recarga la app desde internet. No toca tus datos.</span></div>${LOG.map(l=>`<div class="kv"><span class="mu">${l[0]}</span><span>${h(l[1])}</span></div>`).join("")}</div>`;
+}
+function vModal(){
+  const m=V.modal;
+  if(m.k==="cf")return `<div class="modal"><div class="sheet"><h2>${h(m.msg)}</h2><div class="row" style="margin-top:14px"><button class="p sp" data-a="cfok">Aceptar</button><button class="sp" data-a="closem">Cancelar</button></div></div></div>`;
+  if(m.k==="guide")return `<div class="modal"><div class="sheet"><h2>Cómo funciona</h2>${GUIDE.map(g=>`<details class="card"><summary><b>${h(g[0])}</b></summary><div style="margin-top:8px">${h(g[1])}</div></details>`).join("")}<button data-a="closem" style="width:100%">Cerrar</button></div></div>`;
+  return "";
+}
+function render(){
+  const sh=$(".sheet"),st=sh?sh.scrollTop:0;
+  PH=[];
+  $("#ver").textContent="v"+VERSION;
+  $("#nav").innerHTML=[["new","📝 Nuevo"],["hist","📚 Historial"],["cfg","⚙️ Ajustes"]].map(([k,l])=>`<button class="${V.tab===k?"on":""}" data-a="tab" data-k="${k}">${l}</button>`).join("");
+  $("#app").className=(S.upRep&&V.tab!=="cfg")?"upr":"";
+  $("#app").innerHTML=banner()+(V.tab==="new"?vNew():V.tab==="hist"?vHist():vCfg())+(V.modal?vModal():"");
+  const n=$(".sheet");if(n&&st)n.scrollTop=st;
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.d)V.draft[t.dataset.d]=t.value;
+  if(t.id==="q"){V.q=t.value;$("#hl").innerHTML=histList()}
+});
+document.addEventListener("change",async e=>{
+  const t=e.target,a=t.dataset&&t.dataset.a;
+  if(a==="filt"){V.filter=t.value;render();return}
+  if(a==="photo"&&t.files&&t.files.length){
+    for(const f of [...t.files]){
+      if(V.draft.photos.length>=5){toast("Máximo 5 fotos por reporte");break}
+      try{V.draft.photos.push(await resize(f))}catch(x){toast("No pude leer una de las fotos")}
+    }
+    render();return}
+  if(a==="loadfile"&&t.files&&t.files[0]){await loadBackup(await t.files[0].text());t.value=""}
+});
+document.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-a]");if(!el||el.tagName==="INPUT"||el.tagName==="SELECT")return;
+  const a=el.dataset.a,id=el.dataset.id,m=V.modal;
+  if(a==="tab"){V.tab=el.dataset.k;V.modal=null}
+  else if(a==="cam"){$("#fcam").click();return}
+  else if(a==="gal"){$("#fgal").click();return}
+  else if(a==="rmph")V.draft.photos.splice(+el.dataset.i,1);
+  else if(a==="lb"){$("#lbi").src=PH[+el.dataset.i];$("#lb").style.display="flex";return}
+  else if(a==="share"){const r=curRep();if(!r.desc&&!r.photos.length){toast("Agrega foto o descripción");return}shareRep(r);return}
+  else if(a==="copy"){const r=curRep();if(!r.desc){toast("Falta la descripción");return}copyText(repText(r));return}
+  else if(a==="clr")V.draft={type:V.draft.type,photos:[],desc:"",equipo:""};
+  else if(a==="save"){
+    const r=curRep();if(!r.desc&&!r.photos.length){toast("Agrega foto o descripción");return}
+    if(await putReps([r])){R.push(r);V.draft={type:r.type,photos:[],desc:"",equipo:""};toast("Guardado en el historial")}}
+  else if(a==="resend"){shareRep(R.find(r=>r.id===id));return}
+  else if(a==="del")ask("¿Borrar este reporte?",async()=>{try{await idbDel(id);R=R.filter(r=>r.id!==id);toast("Reporte borrado")}catch(x){toast("No se pudo borrar")}render()});
+  else if(a==="cfok"){const f=m.fn;V.modal=null;render();await f();return}
+  else if(a==="closem")V.modal=null;
+  else if(a==="guide")V.modal={k:"guide"};
+  else if(a==="addtype"){const v=$("#nt").value.trim();if(v&&!S.types.includes(v)){S.types.push(v);await saveCfg()}}
+  else if(a==="deltype"){S.types.splice(+el.dataset.i,1);if(!S.types.length)S.types=DEFT.slice();if(!S.types.includes(V.draft.type))V.draft.type=S.types[0];await saveCfg()}
+  else if(a==="theme"){S.theme=el.dataset.k;applyTheme();await saveCfg()}
+  else if(a==="tglup"){S.upRep=!S.upRep;await saveCfg()}
+  else if(a==="expnp"||a==="bkp")await doBackup(false);
+  else if(a==="expall")await doBackup(true);
+  else if(a==="snooze"){S.snooze=ymd();await saveCfg()}
+  else if(a==="delph"){
+    const days=+$("#pdays").value,cut=Date.now()-days*864e5;
+    ask("¿Borrar las fotos de reportes con más de "+days+" días? El texto de los reportes se queda.",async()=>{const ch=[];let n=0;R.forEach(r=>{const t=repTime(r);if(t&&t<cut&&ph(r).length){n+=ph(r).length;ch.push({...r,fotosBorradas:(r.fotosBorradas||0)+ph(r).length,photos:[],photo:undefined})}});
+      if(ch.length&&await putReps(ch))R=R.map(r=>ch.find(c=>c.id===r.id)||r);toast(n+" foto(s) borrada(s)");render()})}
+  else if(a==="delphall"){ask("¿Borrar TODAS las fotos de los reportes? El texto se queda.",async()=>{const ch=[];let n=0;R.forEach(r=>{if(ph(r).length){n+=ph(r).length;ch.push({...r,fotosBorradas:(r.fotosBorradas||0)+ph(r).length,photos:[],photo:undefined})}});
+      if(ch.length&&await putReps(ch))R=R.map(r=>ch.find(c=>c.id===r.id)||r);toast(n+" foto(s) borrada(s)");render()})}
+  else if(a==="upd"){forceUpdate();return}
+  render();
+});
+$("#lb").onclick=()=>{$("#lb").style.display="none"};
+
+(async()=>{
+  try{const c=await kvGet("cfg");if(c)S=Object.assign(S,c);R=(await idbAll()).map(normRep)}catch(e){toast("No pude abrir el almacenamiento del navegador")}
+  if(!Array.isArray(S.types)||!S.types.length)S.types=DEFT.slice();
+  V.draft.type=S.types[0];applyTheme();render();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script></body></html>
